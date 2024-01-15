@@ -1,0 +1,100 @@
+{
+    "algorithm_type": "classifier",
+    "class_names": [
+        "stopped",
+        "slow",
+        "fast"
+    ],
+    "commit": "774f6d56",
+    "compilation_date": "2023-12-14T08:24:36.119291",
+    "compilation_flags": {
+        "float_abi": "hard",
+        "fshort_enums": false,
+        "short_wchar": false
+    },
+    "compilation_str": "{'compilation_dict':{'request_type':'library','api':{'env':'PROD','version':'v3'},'version':{'web_api':{'env':'PROD','version':'v3'},'local_api':{'version':'2023.12.05.1','platform':'win64'},'studio':'4.3.0'},'compilation_flags':{'float_abi':'hard','short_wchar':false,'fshort_enums':false,'use_knowledge':false},'mcu':'cortex-m33_st_stm32u5_b-u585i-iot02a','sensor':'acc3','request_origin':'manual','algorithm_type':'classifier','lib_version':'v2_774f6d5','info':{'progression':{'evals_done':40829,'optimization_progress':0.25518125,'elapsed_time':958,'cpu_info':{'cpu_nb_cores':4,'cpu_nb_cores_for_optimization':3},'state':'stopped'},'max_ram':32000,'max_flash':null,'optimization_global_id':'cf55b8e2d2c2085fe1cd9f824c602220'},'class_names':'stopped,slow,fast','results':[{'result_id':34,'combination':[1,0,[18,11,9,3,8,7,21,22,20,13,12,25,19,6,5,4,14,15,17,23,16,2,0,24,1,10,26],27,0,30,512,10,0,3,5,0,90,0,3,3,0,1,833.0,416.0,0.0,0,0,1,1,1],'performance':{'performance':{'score':0.8864,'precision':0.9333,'precision_confidence_interval':[0.7395,1.0]},'memory_usage':{'estimated_ram':5461,'estimated_flash':13856,'estimated_flash_knowledge':null}},'learning_min_lines':null}],'data':{'nb_cols':1536,'nb_lines':[[{'file_type':'class','nb_lines':30},{'file_type':'class','nb_lines':33},{'file_type':'class','nb_lines':29}]]},'only_emulators':false,'lock_type':100},'sign':48222,'license_key':'***'}",
+    "compile_emulators": true,
+    "compile_library": true,
+    "data": {
+        "nb_cols": 1536,
+        "nb_lines": [
+            [
+                {
+                    "file_type": "class",
+                    "nb_lines": 30
+                },
+                {
+                    "file_type": "class",
+                    "nb_lines": 33
+                },
+                {
+                    "file_type": "class",
+                    "nb_lines": 29
+                }
+            ]
+        ]
+    },
+    "gcc_version": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+    "learning_min_lines": null,
+    "lib_limited": false,
+    "library_id": "657abbc5580827361d140d66",
+    "library_md5sum": "91cb83dcf95c8e792754afc9dae92aa7",
+    "mcu": "cortex-m33_st_stm32u5_b-u585i-iot02a",
+    "mcu_cpn": "B-U585I-IOT02A",
+    "mcu_family": "STM32U5",
+    "mcu_type": "cortex-m33",
+    "mcu_vendor": "STMicroelectronics",
+    "memory_usage": {
+        "flash": 2266,
+        "ram": 5471
+    },
+    "optimization_info": {
+        "max_flash": null,
+        "max_ram": 32000,
+        "optimization_global_id": "cf55b8e2d2c2085fe1cd9f824c602220",
+        "progression": {
+            "cpu_info": {
+                "cpu_nb_cores": 4,
+                "cpu_nb_cores_for_optimization": 3
+            },
+            "elapsed_time": 958,
+            "evals_done": 40829,
+            "optimization_progress": 0.25518125,
+            "state": "stopped"
+        }
+    },
+    "performance": {
+        "memory_usage": {
+            "estimated_flash": 13856,
+            "estimated_flash_knowledge": null,
+            "estimated_ram": 5461
+        },
+        "performance": {
+            "precision": 0.9333,
+            "precision_confidence_interval": [
+                0.7395,
+                1.0
+            ],
+            "score": 0.8864
+        }
+    },
+    "request_type": "library",
+    "sensor": "acc3",
+    "studio_info": {
+        "local_api": {
+            "platform": "win64",
+            "version": "2023.12.05.1"
+        },
+        "studio": "4.3.0",
+        "web_api": {
+            "env": "PROD",
+            "version": "v3"
+        }
+    },
+    "user_info": {
+        "company": "Mines Saint-\u00c9tienne",
+        "email": "elmahdi.ettaleb@etu.emse.fr",
+        "first_name": "Elmahdi",
+        "last_name": "Ettaleb"
+    }
+}
