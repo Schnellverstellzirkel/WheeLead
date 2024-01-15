@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "B_U585I")(type "KiCad")(uri "${KIPRJMOD}/B_U585I.kicad_sym")(options "")(descr ""))
+  (lib (name "STEVAL_MKI197V1")(type "KiCad")(uri "${KIPRJMOD}/STEVAL_MKI197V1.kicad_sym")(options "")(descr ""))
+)
