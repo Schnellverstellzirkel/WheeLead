@@ -1,0 +1,46 @@
+{
+    "algorithm_type": null,
+    "commit": "49b3b48",
+    "compilation_date": "2024-01-11T11:54:30.501066",
+    "compilation_flags": {
+        "data_rate": 833,
+        "data_type": "ACCELEROMETER",
+        "range": 4,
+        "samples": 128
+    },
+    "compilation_str": "{'compilation_dict':{'request_type':'datalogger','api':{'env':'PROD','version':'v3'},'version':{'web_api':{'env':'PROD','version':'v3'},'local_api':{'version':'2023.12.05.1','platform':'unix'},'studio':'4.3.0'},'compilation_flags':{'data_type':'ACCELEROMETER','data_rate':833,'range':4,'samples':128,'flow':false},'mcu':'B-U585I-IOT02A','sensor':'ISM330DHCX','request_origin':'manual'},'sign':12920,'license_key':'***'}",
+    "compile_emulators": false,
+    "compile_library": true,
+    "data": {},
+    "gcc_version": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+    "learning_min_lines": null,
+    "lib_limited": null,
+    "library_id": "659fd6f6e955429d869e3bf0",
+    "library_md5sum": "b179b4d535766403a93d251d98c1d26d",
+    "mcu": "B-U585I-IOT02A",
+    "mcu_cpn": null,
+    "mcu_family": null,
+    "mcu_type": null,
+    "mcu_vendor": null,
+    "optimization_info": {},
+    "performance": null,
+    "request_type": "datalogger",
+    "sensor": "ISM330DHCX",
+    "studio_info": {
+        "local_api": {
+            "platform": "unix",
+            "version": "2023.12.05.1"
+        },
+        "studio": "4.3.0",
+        "web_api": {
+            "env": "PROD",
+            "version": "v3"
+        }
+    },
+    "user_info": {
+        "company": "Mines Saint-Etienne",
+        "email": "elmahdi.ettaleb@etu.emse.fr",
+        "first_name": "Elmahdi",
+        "last_name": "Ettaleb"
+    }
+}
