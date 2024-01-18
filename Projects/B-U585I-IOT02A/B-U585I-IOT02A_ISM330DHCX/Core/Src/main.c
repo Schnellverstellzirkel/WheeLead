@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -33,8 +33,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef enum {
-  LOG,
-  INFERENCE,
+	LOG, INFERENCE,
 } States_t;
 /* USER CODE END PTD */
 
@@ -43,10 +42,10 @@ typedef enum {
 /************************************************************ NEAI algorithm defines begin ************************************************************/
 /************************************************************ Global settings part ************************************************************/
 #ifndef AXIS
-  #define AXIS                          3                         /* Axis should be defined between 1 and 3 */
+#define AXIS                          3                         /* Axis should be defined between 1 and 3 */
 #endif
 #ifndef SAMPLES
-  #define SAMPLES                       256                       /* Should be between 16 & 4096 */
+#define SAMPLES                       256                       /* Should be between 16 & 4096 */
 #endif
 #define MAX_FIFO_SIZE                   256                       /* The maximum number of data we can get in the FIFO is 512 but here we define max to 256 for our need */
 #define FIFO_FULL                       512                       /* FIFO full size */
@@ -55,16 +54,16 @@ typedef enum {
 #define GYROSCOPE                       0
 #define ACCELEROMETER                   1
 #ifndef SENSOR_TYPE
-  #define SENSOR_TYPE                   ACCELEROMETER             /* Here we define the data type we're going to collect */
+#define SENSOR_TYPE                   ACCELEROMETER             /* Here we define the data type we're going to collect */
 #endif
 /************************************************************ Sensors configuration part ************************************************************/
 #if (SENSOR_TYPE == ACCELEROMETER)
-  #ifndef ACCELEROMETER_ODR
-    #define ACCELEROMETER_ODR           ISM330DHCX_XL_ODR_833Hz  /* Shoud be between ISM330DHCX_XL_ODR_12Hz5 and ISM330DHCX_XL_ODR_6667Hz */
-  #endif
-  #ifndef ACCELEROMETER_FS
-    #define ACCELEROMETER_FS            ISM330DHCX_2g             /* Should be between ISM330DHCX_2g and ISM330DHCX_8g */
-  #endif
+#ifndef ACCELEROMETER_ODR
+#define ACCELEROMETER_ODR           ISM330DHCX_XL_ODR_833Hz  /* Shoud be between ISM330DHCX_XL_ODR_12Hz5 and ISM330DHCX_XL_ODR_6667Hz */
+#endif
+#ifndef ACCELEROMETER_FS
+#define ACCELEROMETER_FS            ISM330DHCX_2g             /* Should be between ISM330DHCX_2g and ISM330DHCX_8g */
+#endif
 #elif (SENSOR_TYPE == GYROSCOPE)
   #ifndef GYROSCOPE_ODR
     #define GYROSCOPE_ODR               ISM330DHCX_GY_ODR_1666Hz  /* Shoud be between ISM330DHCX_GY_ODR_12Hz5 and ISM330DHCX_GY_ODR_6667Hz */
@@ -75,16 +74,16 @@ typedef enum {
 #endif
 /************************************************************ Datalogger / NEAI mode part ************************************************************/
 #ifndef NEAI_MODE
-  #define NEAI_MODE                     1                        /* 0: Datalogger mode, 1: NEAI functions mode */
+#define NEAI_MODE                     1                        /* 0: Datalogger mode, 1: NEAI functions mode */
 #endif
 #if (NEAI_MODE == 1)
-  #ifndef NEAI_LEARN_NB
-    #define NEAI_LEARN_NB               20                        /* Number of buffers to be learn by the NEAI library */
-  #endif
+#ifndef NEAI_LEARN_NB
+#define NEAI_LEARN_NB               20                        /* Number of buffers to be learn by the NEAI library */
+#endif
 #endif
 
 #ifndef SIGNAL_SIZE
-	#define SIGNAL_SIZE  (uint32_t)(DATA_INPUT_USER * AXIS_NUMBER)
+#define SIGNAL_SIZE  (uint32_t)(DATA_INPUT_USER * AXIS_NUMBER)
 #endif
 /************************************************************ NEAI algorithm defines end ************************************************************/
 /* USER CODE END PD */
@@ -104,24 +103,20 @@ UART_HandleTypeDef huart1;
 static uint8_t whoamI, rst;
 uint8_t neai_similarity = 0, neai_state = 0;
 volatile uint8_t drdy = 0;
-uint16_t data_left = (uint16_t) SAMPLES, number_read = 0, neai_buffer_ptr = 0, neai_cnt = 0;
+uint16_t data_left = (uint16_t) SAMPLES, number_read = 0, neai_buffer_ptr = 0,
+		neai_cnt = 0;
 float neai_time = 0.0;
-static float neai_buffer[AXIS * SAMPLES] = {0.0};
+static float neai_buffer[AXIS * SAMPLES] = { 0.0 };
 stmdev_ctx_t dev_ctx;
-
 
 volatile States_t appState = INFERENCE;  // FSM state
 volatile uint32_t sensorDataReady = RESET;
-float input_user_buffer[SIGNAL_SIZE];
+float input_user_buffer[SIGNAL_SIZE ];
 uint16_t id_class = 0; // Points to id class
 float output_class_buffer[CLASS_NUMBER]; // Buffer for class probabilities
 
-
 const char *id2class[CLASS_NUMBER + 1] = { // Buffer for mapping class id to class name
-	"unknown",
-	"static",
-	"vibr",
-};
+		"unknown", "static", "vibr", };
 
 /* USER CODE END PV */
 
@@ -132,8 +127,10 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
-static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len);
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len);
+static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+		uint16_t len);
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+		uint16_t len);
 static void ism330dhcx_initialize(void);
 static void ism330dhcx_initialize_basics(void);
 static void ism330dhcx_initialize_fifo(void);
@@ -142,7 +139,7 @@ static float ism330dhcx_convert_gyro_data_to_mdps(int16_t gyro_raw_data);
 static float ism330dhcx_convert_accel_data_to_mg(int16_t accel_raw_data);
 
 void Inference();
-void FillBuffer(float* buffer, uint32_t size);
+void FillBuffer(float *buffer, uint32_t size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -157,10 +154,10 @@ void FillBuffer(float* buffer, uint32_t size);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  /* Initialize mems driver interface */
-  dev_ctx.write_reg = platform_write;
-  dev_ctx.read_reg = platform_read;
-  dev_ctx.handle = &hi2c2;
+	/* Initialize mems driver interface */
+	dev_ctx.write_reg = platform_write;
+	dev_ctx.read_reg = platform_read;
+	dev_ctx.handle = &hi2c2;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -187,48 +184,43 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-  KIN1_InitCycleCounter();
-  KIN1_EnableCycleCounter();
-  ism330dhcx_initialize();
-  if (NEAI_MODE) {
-	  enum neai_state error_code = neai_classification_init(knowledge);
-	if (error_code != NEAI_OK) {
-	  printf("Knowledge initialization ERROR: %d\r\n", error_code);
-	  Error_Handler();
-	} else {
-	  printf("Knowledge initialization done\r\n");
+	KIN1_InitCycleCounter();
+	KIN1_EnableCycleCounter();
+	ism330dhcx_initialize();
+	if (NEAI_MODE) {
+		enum neai_state error_code = neai_classification_init(knowledge);
+		if (error_code != NEAI_OK) {
+			printf("Knowledge initialization ERROR: %d\r\n", error_code);
+			Error_Handler();
+		} else {
+			printf("Knowledge initialization done\r\n");
+		}
 	}
-  }
-
-
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  while (1) {
-      switch (appState) {
-          case LOG:
-              // Log(); // Implement if needed
-              break;
-          case INFERENCE:
-              Inference();
-              break;
-          default:
-              appState = INFERENCE;
-              break;
-      }
-
-  }
-}
-
+	while (1) {
+		switch (appState) {
+		case LOG:
+			// Log(); // Implement if needed
+			break;
+		case INFERENCE:
+			Inference();
+			break;
+		default:
+			appState = INFERENCE;
+			break;
+		}
+	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
@@ -363,7 +355,7 @@ static void MX_I2C2_Init(void)
 
 }
 
-/**HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -446,7 +438,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, Mems_STSAFE_RESET_Pin|WRLS_WKUP_W_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, Mems_STSAFE_RESET_Pin|GPIO_PIN_13|WRLS_WKUP_W_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : WRLS_FLOW_Pin Mems_VLX_GPIO_Pin Mems_INT_LPS22HH_Pin */
   GPIO_InitStruct.Pin = WRLS_FLOW_Pin|Mems_VLX_GPIO_Pin|Mems_INT_LPS22HH_Pin;
@@ -610,8 +602,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : PC1 */
   GPIO_InitStruct.Pin = GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : WRLS_NOTIFY_Pin Mems_INT_IIS2MDC_Pin USB_IANA_Pin Mems_INT_IIS2MDCD9_Pin */
@@ -626,7 +618,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF10_OCTOSPI1;
-  HAL_GPIO_Init(OCTOSPI_R_IO6_GPIO_Port,&GPIO_InitStruct);
+  HAL_GPIO_Init(OCTOSPI_R_IO6_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_UCPD_FLT_Pin */
   GPIO_InitStruct.Pin = USB_UCPD_FLT_Pin;
@@ -662,8 +654,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_UCPD_CC2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : Mems_STSAFE_RESET_Pin WRLS_WKUP_W_Pin */
-  GPIO_InitStruct.Pin = Mems_STSAFE_RESET_Pin|WRLS_WKUP_W_Pin;
+  /*Configure GPIO pins : Mems_STSAFE_RESET_Pin PF13 WRLS_WKUP_W_Pin */
+  GPIO_InitStruct.Pin = Mems_STSAFE_RESET_Pin|GPIO_PIN_13|WRLS_WKUP_W_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -693,30 +685,28 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 /**
-  * @brief  Redirecting stdout to USART1 which is connected on the STLINK port
-  * @retval
-  * @param
-  */
-int __io_putchar(int ch)
-{
- uint8_t c[1];
- c[0] = ch & 0x00FF;
- HAL_UART_Transmit(&huart1, &*c, 1, 10);
- return ch;
+ * @brief  Redirecting stdout to USART1 which is connected on the STLINK port
+ * @retval
+ * @param
+ */
+int __io_putchar(int ch) {
+	uint8_t c[1];
+	c[0] = ch & 0x00FF;
+	HAL_UART_Transmit(&huart1, &*c, 1, 10);
+	return ch;
 }
 
 /**
-  * @brief  EXTI line detection callback.
-  * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
-{
-  switch(GPIO_Pin) {
-  case ISM330DHCX_INT_Pin:
-    drdy = 1;
-    break;
-  }
+ * @brief  EXTI line detection callback.
+ * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
+ * @retval None
+ */
+void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
+	switch (GPIO_Pin) {
+	case ISM330DHCX_INT_Pin:
+		drdy = 1;
+		break;
+	}
 }
 
 /*
@@ -729,10 +719,11 @@ void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
  * @param  len       number of consecutive register to write
  *
  */
-static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len)
-{
-  HAL_I2C_Mem_Write(handle, ISM330DHCX_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, (uint8_t*) bufp, len, 1000);
-  return 0;
+static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+		uint16_t len) {
+	HAL_I2C_Mem_Write(handle, ISM330DHCX_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT,
+			(uint8_t*) bufp, len, 1000);
+	return 0;
 }
 
 /*
@@ -745,10 +736,12 @@ static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, ui
  * @param  len       number of consecutive register to read
  *
  */
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len)
-{HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
-  HAL_I2C_Mem_Read(handle, ISM330DHCX_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
-  return 0;
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+		uint16_t len) {
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_I2C_Mem_Read(handle, ISM330DHCX_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT,
+			bufp, len, 1000);
+	return 0;
 }
 
 /*
@@ -759,19 +752,18 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t 
  * @return No
  *
  */
-static void ism330dhcx_initialize()
-{
-  ism330dhcx_initialize_basics();
+static void ism330dhcx_initialize() {
+	ism330dhcx_initialize_basics();
 #if (SENSOR_TYPE == ACCELEROMETER)
-  /* Accelelerometer configuration */
-  ism330dhcx_xl_data_rate_set(&dev_ctx, ACCELEROMETER_ODR);
-  ism330dhcx_xl_full_scale_set(&dev_ctx, ACCELEROMETER_FS);
+	/* Accelelerometer configuration */
+	ism330dhcx_xl_data_rate_set(&dev_ctx, ACCELEROMETER_ODR);
+	ism330dhcx_xl_full_scale_set(&dev_ctx, ACCELEROMETER_FS);
 #elif (SENSOR_TYPE == GYROSCOPE)
   /* Gyroscope configuration */
   ism330dhcx_gy_data_rate_set(&dev_ctx, GYROSCOPE_ODR);
   ism330dhcx_gy_full_scale_set(&dev_ctx, GYROSCOPE_FS);
 #endif
-  ism330dhcx_initialize_fifo();
+	ism330dhcx_initialize_fifo();
 }
 
 /*
@@ -782,26 +774,25 @@ static void ism330dhcx_initialize()
  * @return No
  *
  */
-static void ism330dhcx_initialize_basics()
-{
-  /* Check device ID */
-  whoamI = 0;
+static void ism330dhcx_initialize_basics() {
+	/* Check device ID */
+	whoamI = 0;
 
-  do {
-    /* Wait sensor boot time */
-    HAL_Delay(10);
-    ism330dhcx_device_id_get(&dev_ctx, &whoamI);
-  } while (whoamI != ISM330DHCX_ID);
+	do {
+		/* Wait sensor boot time */
+		HAL_Delay(10);
+		ism330dhcx_device_id_get(&dev_ctx, &whoamI);
+	} while (whoamI != ISM330DHCX_ID);
 
-  /* Restore default configuration */
-  ism330dhcx_reset_set(&dev_ctx, PROPERTY_ENABLE);
+	/* Restore default configuration */
+	ism330dhcx_reset_set(&dev_ctx, PROPERTY_ENABLE);
 
-  do {
-    ism330dhcx_reset_get(&dev_ctx, &rst);
-  } while (rst);
+	do {
+		ism330dhcx_reset_get(&dev_ctx, &rst);
+	} while (rst);
 
-  /* Start device configuration. */
-  ism330dhcx_device_conf_set(&dev_ctx, PROPERTY_ENABLE);
+	/* Start device configuration. */
+	ism330dhcx_device_conf_set(&dev_ctx, PROPERTY_ENABLE);
 }
 
 /*
@@ -812,30 +803,28 @@ static void ism330dhcx_initialize_basics()
  * @return No
  *
  */
-static void ism330dhcx_initialize_fifo()
-{
+static void ism330dhcx_initialize_fifo() {
 #if (SENSOR_TYPE == ACCELEROMETER)
-  /* Batch odr config */
-  ism330dhcx_fifo_xl_batch_set(&dev_ctx, ACCELEROMETER_ODR);
-  ism330dhcx_fifo_gy_batch_set(&dev_ctx, 0);
+	/* Batch odr config */
+	ism330dhcx_fifo_xl_batch_set(&dev_ctx, ACCELEROMETER_ODR);
+	ism330dhcx_fifo_gy_batch_set(&dev_ctx, 0);
 #elif (SENSOR_TYPE == GYROSCOPE)
   /* Batch odr config */
   ism330dhcx_fifo_xl_batch_set(&dev_ctx, 0);
   ism330dhcx_fifo_gy_batch_set(&dev_ctx, GYROSCOPE_ODR);
 #endif
-  /* FIFO MODE */
-  ism330dhcx_fifo_mode_set(&dev_ctx, ISM330DHCX_BYPASS_MODE);
-  HAL_Delay(10);
-  ism330dhcx_fifo_mode_set(&dev_ctx, ISM330DHCX_STREAM_MODE);
-  /* Watermark config */
-  if (SAMPLES <= MAX_FIFO_SIZE) {
-    ism330dhcx_fifo_watermark_set(&dev_ctx, (uint16_t) SAMPLES);
-  }
-  else {
-    ism330dhcx_fifo_watermark_set(&dev_ctx, (uint16_t) MAX_FIFO_SIZE);
-  }
-  uint8_t ctrl = 0x08;
-  ism330dhcx_write_reg(&dev_ctx, ISM330DHCX_INT1_CTRL, (uint8_t *) &ctrl, 1);
+	/* FIFO MODE */
+	ism330dhcx_fifo_mode_set(&dev_ctx, ISM330DHCX_BYPASS_MODE);
+	HAL_Delay(10);
+	ism330dhcx_fifo_mode_set(&dev_ctx, ISM330DHCX_STREAM_MODE);
+	/* Watermark config */
+	if (SAMPLES <= MAX_FIFO_SIZE) {
+		ism330dhcx_fifo_watermark_set(&dev_ctx, (uint16_t) SAMPLES);
+	} else {
+		ism330dhcx_fifo_watermark_set(&dev_ctx, (uint16_t) MAX_FIFO_SIZE);
+	}
+	uint8_t ctrl = 0x08;
+	ism330dhcx_write_reg(&dev_ctx, ISM330DHCX_INT1_CTRL, (uint8_t*) &ctrl, 1);
 }
 
 /*
@@ -847,35 +836,53 @@ static void ism330dhcx_initialize_fifo()
  * @return No
  *
  */
-static void ism330dhcx_get_buffer_from_fifo(uint16_t nb)
-{
-  uint8_t reg_tag = 0;
-  uint8_t buff_tmp[nb * FIFO_WORD];
-  /*
-   * The data stored in FIFO are accessible from dedicated registers and each FIFO word is composed of 7
-   * bytes: one tag byte (FIFO_DATA_OUT_TAG (78h)), in order to identify the sensor, and 6 bytes of fixed data
-   * (FIFO_DATA_OUT registers from (79h) to (7Eh))
-   * So, here we read the fifo in only one transaction in order to save time
-   */
-  ism330dhcx_read_reg(&dev_ctx, ISM330DHCX_FIFO_DATA_OUT_TAG, buff_tmp, nb * FIFO_WORD);
-  for (uint16_t i = 0; i < nb; i++) {HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
-    /* According to the datasheet, the TAG_SENSOR is the 5 MSB of the FIFO_DATA_OUT_TAG register, so we shift 3 bits to the right */
-    reg_tag = buff_tmp[FIFO_WORD * i] >> 3;
-    if(reg_tag == ISM330DHCX_XL_NC_TAG) {
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i)] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8 | buff_tmp[(FIFO_WORD * i) + 1]);
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 1] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8 | buff_tmp[(FIFO_WORD * i) + 3]);
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 2] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8 | buff_tmp[(FIFO_WORD * i) + 5]);
-    }
-    else if(reg_tag == ISM330DHCX_GYRO_NC_TAG) {
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i)] = ism330dhcx_convert_gyro_data_to_mdps((uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8 | buff_tmp[(FIFO_WORD * i) + 1]);
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 1] = ism330dhcx_convert_gyro_data_to_mdps((uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8 | buff_tmp[(FIFO_WORD * i) + 3]);
-      neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 2] = ism330dhcx_convert_gyro_data_to_mdps((uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8 | buff_tmp[(FIFO_WORD * i) + 5]);
-    }
-  }
-  neai_buffer_ptr += nb;
-  if (neai_buffer_ptr == SAMPLES) {
-    neai_buffer_ptr = 0;
-  }
+static void ism330dhcx_get_buffer_from_fifo(uint16_t nb) {
+	uint8_t reg_tag = 0;
+	uint8_t buff_tmp[nb * FIFO_WORD];
+	/*
+	 * The data stored in FIFO are accessible from dedicated registers and each FIFO word is composed of 7
+	 * bytes: one tag byte (FIFO_DATA_OUT_TAG (78h)), in order to identify the sensor, and 6 bytes of fixed data
+	 * (FIFO_DATA_OUT registers from (79h) to (7Eh))
+	 * So, here we read the fifo in only one transaction in order to save time
+	 */
+	ism330dhcx_read_reg(&dev_ctx, ISM330DHCX_FIFO_DATA_OUT_TAG, buff_tmp,
+			nb * FIFO_WORD);
+	for (uint16_t i = 0; i < nb; i++) {
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+		/* According to the datasheet, the TAG_SENSOR is the 5 MSB of the FIFO_DATA_OUT_TAG register, so we shift 3 bits to the right */
+		reg_tag = buff_tmp[FIFO_WORD * i] >> 3;
+		if (reg_tag == ISM330DHCX_XL_NC_TAG) {
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i)] =
+					ism330dhcx_convert_accel_data_to_mg(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8
+									| buff_tmp[(FIFO_WORD * i) + 1]);
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 1] =
+					ism330dhcx_convert_accel_data_to_mg(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8
+									| buff_tmp[(FIFO_WORD * i) + 3]);
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 2] =
+					ism330dhcx_convert_accel_data_to_mg(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8
+									| buff_tmp[(FIFO_WORD * i) + 5]);
+		} else if (reg_tag == ISM330DHCX_GYRO_NC_TAG) {
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i)] =
+					ism330dhcx_convert_gyro_data_to_mdps(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8
+									| buff_tmp[(FIFO_WORD * i) + 1]);
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 1] =
+					ism330dhcx_convert_gyro_data_to_mdps(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8
+									| buff_tmp[(FIFO_WORD * i) + 3]);
+			neai_buffer[(AXIS * neai_buffer_ptr) + (AXIS * i) + 2] =
+					ism330dhcx_convert_gyro_data_to_mdps(
+							(uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8
+									| buff_tmp[(FIFO_WORD * i) + 5]);
+		}
+	}
+	neai_buffer_ptr += nb;
+	if (neai_buffer_ptr == SAMPLES) {
+		neai_buffer_ptr = 0;
+	}
 }
 
 /*
@@ -887,9 +894,8 @@ static void ism330dhcx_get_buffer_from_fifo(uint16_t nb)
  * @return The converted value in milli degrees per second (mdps)
  *
  */
-static float ism330dhcx_convert_gyro_data_to_mdps(int16_t gyro_raw_data)
-{
-  float gyro_data_mdps = 0.0;
+static float ism330dhcx_convert_gyro_data_to_mdps(int16_t gyro_raw_data) {
+	float gyro_data_mdps = 0.0;
 #if (SENSOR_TYPE == GYROSCOPE)
   switch (GYROSCOPE_FS)
   {
@@ -916,7 +922,7 @@ static float ism330dhcx_convert_gyro_data_to_mdps(int16_t gyro_raw_data)
     break;
   }
 #endif
-  return gyro_data_mdps;
+	return gyro_data_mdps;
 }
 
 /*
@@ -928,72 +934,77 @@ static float ism330dhcx_convert_gyro_data_to_mdps(int16_t gyro_raw_data)
  * @return The converted value in milli-G' (mg)
  *
  */
-static float ism330dhcx_convert_accel_data_to_mg(int16_t accel_raw_data)
-{
-  float accel_data_mg = 0.0;
+static float ism330dhcx_convert_accel_data_to_mg(int16_t accel_raw_data) {
+	float accel_data_mg = 0.0;
 #if (SENSOR_TYPE == ACCELEROMETER)
-  switch (ACCELEROMETER_FS)
-  {
-  case ISM330DHCX_2g:
-    accel_data_mg = ism330dhcx_from_fs2g_to_mg(accel_raw_data);
-    break;
-  case ISM330DHCX_4g:
-    accel_data_mg = ism330dhcx_from_fs4g_to_mg(accel_raw_data);
-    break;
-  case ISM330DHCX_8g:
-    accel_data_mg = ism330dhcx_from_fs8g_to_mg(accel_raw_data);
-    break;
-  case ISM330DHCX_16g:
-    accel_data_mg = ism330dhcx_from_fs16g_to_mg(accel_raw_data);
-    break;
-  default:
-    accel_data_mg = 0.0;
-    break;
-  }
+	switch (ACCELEROMETER_FS) {
+	case ISM330DHCX_2g:
+		accel_data_mg = ism330dhcx_from_fs2g_to_mg(accel_raw_data);
+		break;
+	case ISM330DHCX_4g:
+		accel_data_mg = ism330dhcx_from_fs4g_to_mg(accel_raw_data);
+		break;
+	case ISM330DHCX_8g:
+		accel_data_mg = ism330dhcx_from_fs8g_to_mg(accel_raw_data);
+		break;
+	case ISM330DHCX_16g:
+		accel_data_mg = ism330dhcx_from_fs16g_to_mg(accel_raw_data);
+		break;
+	default:
+		accel_data_mg = 0.0;
+		break;
+	}
 #endif
-  return accel_data_mg;
+	return accel_data_mg;
 }
 
 void Inference() {
-    FillBuffer(input_user_buffer, SIGNAL_SIZE);
-    uint16_t id_class;
-    neai_classification(input_user_buffer, output_class_buffer, &id_class);
-    printf("Class: %s [%u%%]\r\n", id2class[id_class], (uint16_t)(output_class_buffer[id_class - 1] * 100));
-    if (id_class==0) {
-    	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
-    } else {
-    	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_RESET);
-    }
-
-
+	FillBuffer(input_user_buffer, SIGNAL_SIZE);
+	uint16_t id_class;
+	neai_classification(input_user_buffer, output_class_buffer, &id_class);
+	printf("Class: %s [%u%%]\r\n", id2class[id_class],
+			(uint16_t) (output_class_buffer[id_class - 1] * 100));
+	printf("id class : %d \n", id_class);
+	if (id_class == 2) {
+		printf("ch3l");
+		HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_SET);
+	} else {
+		printf("tfi");
+		HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_RESET);
+	}
 }
 
+void FillBuffer(float *buffer, uint32_t size) {
+	uint16_t num;
+	uint16_t data_left = size / AXIS;
+	uint8_t buff_tmp[MAX_FIFO_SIZE * FIFO_WORD];
 
-void FillBuffer(float* buffer, uint32_t size) {
-    uint16_t num;
-    uint16_t data_left = size / AXIS;
-    uint8_t buff_tmp[MAX_FIFO_SIZE * FIFO_WORD];
+	while (data_left > 0) {
+		ism330dhcx_fifo_data_level_get(&dev_ctx, &num);
+		if (data_left < num) {
+			num = data_left;
+		}
 
-    while (data_left > 0) {
-        ism330dhcx_fifo_data_level_get(&dev_ctx, &num);
-        if (data_left < num) {
-            num = data_left;
-        }
+		ism330dhcx_read_reg(&dev_ctx, ISM330DHCX_FIFO_DATA_OUT_TAG, buff_tmp,
+				num * FIFO_WORD);
 
-        ism330dhcx_read_reg(&dev_ctx, ISM330DHCX_FIFO_DATA_OUT_TAG, buff_tmp, num * FIFO_WORD);
-
-        for (uint16_t i = 0; i < num; i++) {
-            uint8_t reg_tag = buff_tmp[FIFO_WORD * i] >> 3;
-            if(reg_tag == ISM330DHCX_XL_NC_TAG) {
-                buffer[(AXIS * i)] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8 | buff_tmp[(FIFO_WORD * i) + 1]);
-                buffer[(AXIS * i) + 1] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8 | buff_tmp[(FIFO_WORD * i) + 3]);
-                buffer[(AXIS * i) + 2] = ism330dhcx_convert_accel_data_to_mg((uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8 | buff_tmp[(FIFO_WORD * i) + 5]);
-            }
-        }
-        data_left -= num;
-    }
+		for (uint16_t i = 0; i < num; i++) {
+			uint8_t reg_tag = buff_tmp[FIFO_WORD * i] >> 3;
+			if (reg_tag == ISM330DHCX_XL_NC_TAG) {
+				buffer[(AXIS * i)] = ism330dhcx_convert_accel_data_to_mg(
+						(uint16_t) buff_tmp[(FIFO_WORD * i) + 2] << 8
+								| buff_tmp[(FIFO_WORD * i) + 1]);
+				buffer[(AXIS * i) + 1] = ism330dhcx_convert_accel_data_to_mg(
+						(uint16_t) buff_tmp[(FIFO_WORD * i) + 4] << 8
+								| buff_tmp[(FIFO_WORD * i) + 3]);
+				buffer[(AXIS * i) + 2] = ism330dhcx_convert_accel_data_to_mg(
+						(uint16_t) buff_tmp[(FIFO_WORD * i) + 6] << 8
+								| buff_tmp[(FIFO_WORD * i) + 5]);
+			}
+		}
+		data_left -= num;
+	}
 }
-
 
 /* USER CODE END 4 */
 
@@ -1004,11 +1015,10 @@ void FillBuffer(float* buffer, uint32_t size) {
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
